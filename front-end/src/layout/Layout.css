@@ -1,4 +1,45 @@
-.side-bar {
-  background-color: #393a44;
-  min-width: 200px;
+.Layout {
+  position: relative;
+}
+
+.Layout::after {
+  content: '';
+  background-color: #ffd4ca;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+  opacity: 0.7;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  position: absolute;
+  z-index: -1;
+}
+
+/* media queries >= 768px */
+@media (min-width: 768px) {
+  .Layout::after {
+    content: '';
+    background-color: #ffd4ca;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+    background-size: cover;
+    opacity: 0.7;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    position: absolute;
+    z-index: -1;
+  }
+}
+
+/* media queries >= 992px */
+@media (min-width: 992px) {
+  .Layout::after {
+    opacity: 0.6;
+  }
 }

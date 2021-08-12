@@ -1,0 +1,41 @@
+@import '../App.css';
+
+.Search .AllReservations {
+  position: relative;
+  min-height: 600px;
+}
+
+.Search .AllReservations::after {
+  content: '';
+  background-color: transparent;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  position: absolute;
+  pointer-events: none;
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.Search .no-reservations {
+  color: var(--red);
+  font-family: var(--cursive);
+  font-size: 3em;
+}
+
+/* media queries >= 992px */
+@media (min-width: 992px) {
+  .Search .AllReservations {
+    padding-top: 50px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .Search .no-reservations {
+    color: var(--red);
+    font-family: var(--cursive);
+    font-size: 3.5em;
+  }
+}

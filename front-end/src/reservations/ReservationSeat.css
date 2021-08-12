@@ -1,0 +1,9 @@
+@import '../App.css';
+
+.ReservationSeat {
+  height: 100vh;
+}
+
+.ReservationSeat .form-control {
+  margin-bottom: 150px;
+}

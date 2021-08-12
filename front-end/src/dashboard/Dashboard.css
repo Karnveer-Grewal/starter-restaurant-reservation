@@ -1,0 +1,72 @@
+@import '../App.css';
+
+.Dashboard h3 {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50px;
+}
+
+.Dashboard .buttons {
+  margin: 0 0 20px 0;
+}
+
+/* media queries >= 768px */
+@media (min-width: 768px) {
+  .Dashboard h3 {
+    top: 80px;
+    font-style: italic;
+    font-weight: bold;
+    padding-bottom: 100px;
+  }
+
+  .Dashboard .AllTables {
+    padding-bottom: 150px;
+  }
+
+  .Dashboard .AllReservations,
+  .Dashboard .AllTables {
+    width: 80%;
+  }
+}
+
+/* media queries >= 992px */
+@media (min-width: 992px) {
+  .Dashboard h3 {
+    top: 110px;
+  }
+
+  .Dashboard .buttons {
+    margin-bottom: 40px;
+  }
+
+  .Dashboard .AllReservations,
+  .Dashboard .AllTables {
+    width: 100%;
+  }
+
+  .Dashboard .reservations-data,
+  .Dashboard .tables-data {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    position: relative;
+  }
+
+  .Dashboard .reservations-data::after,
+  .Dashboard .tables-data::after {
+    content: '';
+    background-color: transparent;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    position: absolute;
+    pointer-events: none;
+    background-color: rgba(0, 0, 0, 0.1);
+  }
+  .Dashboard .table-heading {
+    padding: 65px;
+  }
+}

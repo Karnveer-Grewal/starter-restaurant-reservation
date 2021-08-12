@@ -1,0 +1,77 @@
+@import '../App.css';
+
+.NewReservation form {
+  position: relative;
+}
+
+.NewReservation form::after {
+  content: '';
+  background-color: transparent;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  position: absolute;
+  pointer-events: none;
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.NewReservation .form-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.NewReservation label {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  align-items: center;
+  padding: 10px 0;
+}
+
+.NewReservation span {
+  font-family: var(--cursive);
+  width: 100%;
+  font-size: 2.5em;
+}
+
+.NewReservation input[type='number'] {
+  width: 100px;
+  text-align: center;
+}
+
+/* media queries >= 768px */
+@media (min-width: 768px) {
+  .NewReservation span {
+    font-size: 3em;
+  }
+}
+
+/* media queries >= 992px */
+@media (min-width: 992px) {
+  .NewReservation .form-group {
+    padding-top: 50px;
+  }
+
+  .NewReservation label {
+    flex-direction: row;
+    width: 80%;
+  }
+
+  .NewReservation span {
+    display: flex;
+    justify-content: flex-end;
+    width: 40%;
+    font-size: 3.2em;
+  }
+
+  .NewReservation input {
+    text-align: left;
+    display: flex;
+    justify-content: flex-start;
+    width: 50%;
+    margin-left: 30px;
+    padding-left: 15px;
+  }
+}

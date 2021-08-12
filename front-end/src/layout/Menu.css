@@ -1,0 +1,53 @@
+@import '../App.css';
+
+.Menu {
+  width: 100%;
+  margin: 0 auto;
+}
+
+.Menu ul {
+  background-color: var(--dark-bg);
+  margin: 0;
+  padding: 0 0 10px 0;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+}
+
+.Menu li {
+  list-style: none;
+  padding: 10px;
+}
+
+.Menu a {
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.Menu .oi {
+  color: var(--white);
+}
+
+.Menu p {
+  margin: 0;
+  color: var(--white);
+}
+
+.Menu p:hover {
+  color: var(--pink);
+}
+
+/* media queries >= 992px */
+@media (min-width: 992px) {
+  .Menu {
+    max-width: 1100px;
+  }
+
+  .Menu .periodic-tables,
+  .Menu .oi,
+  .Menu p {
+    font-size: 25px;
+  }
+}

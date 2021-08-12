@@ -1,25 +1,48 @@
-import { useState } from 'react';
-import { useHistory } from 'react-router-dom';
+// dependencies
+import React, { useState } from 'react';
 import axios from 'axios';
+import { useHistory } from 'react-router-dom';
+// local files
+import './NewReservation.css';
 import { today } from '../utils/date-time';
 import ErrorAlert from '../layout/ErrorAlert';
 import formatReservationTime from '../utils/format-reservation-time';
+import Footer from '../layout/Footer';
 
-function NewReservation() {
+const NewReservation = () => {
+  const API_BASE_URL =
+    process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
+  /* ----- useHistory ----- */
   const history = useHistory();
 
+  /* ----- state ----- */
   const initialFormState = {
     first_name: '',
     last_name: '',
     mobile_number: '',
     reservation_date: '',
     reservation_time: '',
-    people: '',
+    people: 1,
   };
 
-  const [formData, setFormData] = useState({ ...initialFormState });
+  const [formData, setFormData] = useState({
+    ...initialFormState,
+  });
   const [formErrors, setFormErrors] = useState([]);
 
+  /* ----- helper functions ----- */
+  // checks if mobile_number is in proper format: all numbers XXX-XXX-XXXX
+  const mobileNumberFormat = () => {
+    let regExp7 = /^\(?([0-9]{3})\)?[-]?([0-9]{4})$/;
+    let regExp10 = /^\(?([0-9]{3})\)?[-]?([0-9]{3})[-]?([0-9]{4})$/;
+    let match7 = formData.mobile_number.match(regExp7);
+    let match10 = formData.mobile_number.match(regExp10);
+
+    if (match7 || match10) return true;
+    return false;
+  };
+
+  // returns the specific reservation_date as a number example: sun = 0, tues = 2, sat = 6
   const getReservationDay = () => {
     const year = formData.reservation_date.split('-')[0];
     const month = formData.reservation_date.split('-')[1] - 1;
@@ -29,6 +52,7 @@ function NewReservation() {
     return reservationDate.getDay();
   };
 
+  // returns positive number if reservation_date is > today
   const reservationMinusTodayDate = () => {
     const reservationDate = formData.reservation_date.split('-').join('');
     const todayDate = today().split('-').join('');
@@ -36,6 +60,7 @@ function NewReservation() {
     return reservationDate - todayDate;
   };
 
+  // if reservation_time is within bounds, returns true
   const reservationTimeIsValid = () => {
     let result = false;
     const reservMinusTodayDate = reservationMinusTodayDate();
@@ -64,13 +89,20 @@ function NewReservation() {
     return result;
   };
 
+  // error check, returns an array of errors, or empty array if everything's good
   const formValidation = () => {
+    const mobileNumberFormatCheck = mobileNumberFormat();
     const reservationDateTuesdayCheck = getReservationDay();
     const reservMinusTodayDate = reservationMinusTodayDate();
     const reservationTimeIsValidCheck = reservationTimeIsValid();
 
     const array = [];
 
+    // checks if mobile_number is formatted correctly: XXX-XXX-XXXX
+    if (!mobileNumberFormatCheck)
+      array.push(
+        'The mobile number must be all numbers in format: XXX-XXXX OR XXX-XXX-XXXX'
+      );
     // check if reservation_date is on Tuesday
     if (reservationDateTuesdayCheck === 2)
       array.push('We are closed on Tuesdays. No reservations allowed.');
@@ -88,144 +120,152 @@ function NewReservation() {
     return array;
   };
 
-  //EVENT HANDLERS
-  //handle input change on form
-  const handleChange = ({ target }) => {
+  /* ----- event handlers ----- */
+  const handleChange = (event) => {
     setFormData({
       ...formData,
-      [target.name]: target.value,
+      [event.target.name]: event.target.value,
     });
   };
-  console.log(formData);
-  console.log('Errors', formErrors);
 
-  //handle cancel button to go back
+  const handleNumberChange = (event) => {
+    setFormData({
+      ...formData,
+      [event.target.name]: Number(event.target.value),
+    });
+  };
+
   const handleCancelButton = () => {
     history.goBack();
   };
 
-  //handle submit button to submit form
-  const handleSubmit = (event) => {
+  const handleFormSubmit = async (event) => {
     event.preventDefault();
-
+    // handles all form validations, returns an array with errors.
     const runFormValidation = formValidation();
 
     setFormErrors(runFormValidation);
-
     if (!runFormValidation.length) {
-      const url = 'http://localhost:5000/reservations';
-      const data = { data: formData };
+      try {
+        const url = `${API_BASE_URL}/reservations`;
+        const data = {
+          data: formData,
+        };
 
-      axios
-        .post(url, data)
-        .then(() => {
-          history.push(`/dashboard/?date=${formData.reservation_date}`);
-        })
-        .catch((err) => {
-          console.error(err);
-        });
-
-      console.log('Submitted:', formData);
-      setFormData({ ...initialFormState });
+        await axios.post(url, data);
+        history.push(`/dashboard/?date=${formData.reservation_date}`);
+      } catch (error) {
+        console.log(error);
+      }
     }
   };
 
-  //FORM JSX
+  /* ----- render content ----- */
   return (
-    <section>
-      {formErrors.map((error, index) => {
-        console.log(error);
-        return <ErrorAlert key={index} error={error} />;
+    <section className='NewReservation'>
+      {/* Error messages */}
+      {formErrors.map((error) => {
+        return <ErrorAlert key={error} error={error} />;
       })}
-      <form onSubmit={handleSubmit}>
-        <label htmlFor='first_name'>
-          First Name:
-          <input
-            id='first_name'
-            type='text'
-            name='first_name'
-            required
-            onChange={handleChange}
-            value={formData.first_name}
-          />
-        </label>
-        <br />
-        <label htmlFor='last_name'>
-          Last Name:
-          <input
-            id='last_name'
-            type='text'
-            name='last_name'
-            required
-            onChange={handleChange}
-            value={formData.last_name}
-          />
-        </label>
-        <br />
-        <label htmlFor='mobile_number'>
-          Mobile Number:
-          <input
-            type='tel'
-            id='mobile_number'
-            name='mobile_number'
-            placeholder='123-456-7890'
-            onChange={handleChange}
-            value={formData.mobile_number}
-            required
-          ></input>
-        </label>
-        <br />
-        <label htmlFor='reservation_date'>
-          Reservation Date:
-          <input
-            id='reservation_date'
-            type='date'
-            name='reservation_date'
-            placeholder='YYYY-MM-DD'
-            pattern='\d{4}-\d{2}-\d{2}'
-            required
-            onChange={handleChange}
-            value={formData.reservation_date}
-          />
-        </label>
-        <br />
-        <label htmlFor='reservation_time'>
-          Reservation Time:
-          <input
-            id='reservation_time'
-            type='time'
-            name='reservation_time'
-            placeholder='HH:MM'
-            pattern='[0-9]{2}:[0-9]{2}'
-            //   min="10:30"
-            //   max="21:30"
-            required
-            onChange={handleChange}
-            value={formData.reservation_time}
-          />
-        </label>
-        <br />
-        <label htmlFor='people'>
-          Number of People:
-          <input
-            id='people'
-            type='number'
-            name='people'
-            min='1'
-            required
-            onChange={handleChange}
-            value={formData.people}
-          />
-        </label>
-        <br />
-
-        <button type='submit'>Submit</button>
-        <button type='button' onClick={handleCancelButton}>
-          Cancel
-        </button>
+      {/* */}
+      <h1>New Reservation:</h1>
+      <form onSubmit={handleFormSubmit}>
+        <div className='form-group'>
+          <label htmlFor='first_name'>
+            <span>First name:</span>
+            <input
+              id='first_name'
+              className='form-control'
+              type='text'
+              name='first_name'
+              value={formData.first_name}
+              onChange={handleChange}
+              placeholder='First Name'
+              required
+            />
+          </label>
+          <label htmlFor='last_name'>
+            <span>Last name:</span>
+            <input
+              id='last_name'
+              className='form-control'
+              type='text'
+              name='last_name'
+              value={formData.last_name}
+              onChange={handleChange}
+              placeholder='Last Name'
+              required
+            />
+          </label>
+          <label htmlFor='mobile_number'>
+            <span>Mobile Number:</span>
+            <input
+              id='mobile_number'
+              className='form-control'
+              type='tel'
+              name='mobile_number'
+              value={formData.mobile_number}
+              onChange={handleChange}
+              required
+            />
+          </label>
+          <label htmlFor='reservation_date'>
+            <span>Reservation Date:</span>
+            <input
+              id='reservation_date'
+              className='form-control'
+              type='date'
+              name='reservation_date'
+              pattern='\d{4}-\d{2}-\d{2}'
+              value={formData.reservation_date}
+              onChange={handleChange}
+              placeholder='YYYY-MM-DD'
+              required
+            />
+          </label>
+          <label htmlFor='reservation_time'>
+            <span>Reservation Time:</span>
+            <input
+              id='reservation_time'
+              className='form-control'
+              type='time'
+              name='reservation_time'
+              value={formData.reservation_time}
+              onChange={handleChange}
+              placeholder='HH:MM'
+              required
+            />
+          </label>
+          <label htmlFor='people'>
+            <span>People:</span>
+            <input
+              id='people'
+              className='form-control'
+              type='number'
+              name='people'
+              value={formData.people}
+              onChange={handleNumberChange}
+              required
+            />
+          </label>
+          <div className='buttons'>
+            <button className='btn brown-btn' type='submit'>
+              Submit
+            </button>
+            <button
+              className='btn red-btn'
+              type='button'
+              onClick={handleCancelButton}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
       </form>
+
+      <Footer />
     </section>
   );
-}
+};
 
 export default NewReservation;

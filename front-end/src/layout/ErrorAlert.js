@@ -8,8 +8,8 @@ import React from 'react';
  *  a bootstrap danger alert that contains the message string.
  */
 
-function ErrorAlert({ error }) {
+const ErrorAlert = ({ error }) => {
   return error && <div className='alert alert-danger m-2'>Error: {error}</div>;
-}
+};
 
 export default ErrorAlert;

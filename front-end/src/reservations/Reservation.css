@@ -1,0 +1,26 @@
+@import '../App.css';
+
+.Reservation .buttons {
+  margin: 20px 0 0 0;
+}
+
+/* media queries >= 992px */
+@media (min-width: 992px) {
+  .Reservation {
+    width: 50%;
+    margin-top: 30px;
+    margin-bottom: 50px;
+  }
+  .Reservation h5 {
+    font-size: 2em;
+    padding-top: 70px;
+  }
+  .Reservation .card-body {
+    border-color: var(--rosybrown);
+    border-width: 1px;
+    border-style: solid;
+    margin-top: 60px;
+    border-radius: 10px;
+    background-color: #fcd5ce;
+  }
+}

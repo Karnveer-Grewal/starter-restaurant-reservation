@@ -1,6 +1,8 @@
-import React from "react";
-
-import { Link } from "react-router-dom";
+// dependencies
+import React from 'react';
+// local files
+import './Menu.css';
+import { Link } from 'react-router-dom';
 
 /**
  * Defines the menu for this application.
@@ -8,55 +10,46 @@ import { Link } from "react-router-dom";
  * @returns {JSX.Element}
  */
 
-function Menu() {
+const Menu = () => {
+  /* ----- render content ----- */
   return (
-    <nav className="navbar navbar-dark align-items-start p-0">
-      <div className="container-fluid d-flex flex-column p-0">
-        <Link
-          className="navbar-brand d-flex justify-content-center align-items-center sidebar-brand m-0"
-          to="/"
-        >
-          <div className="sidebar-brand-text mx-3">
-            <span>Periodic Tables</span>
-          </div>
-        </Link>
-        <hr className="sidebar-divider my-0" />
-        <ul className="nav navbar-nav text-light" id="accordionSidebar">
-          <li className="nav-item">
-            <Link className="nav-link" to="/dashboard">
-              <span className="oi oi-dashboard" />
-              &nbsp;Dashboard
+    <section className='Menu'>
+      <nav>
+        <ul>
+          <li className='periodic-tables'>
+            <Link to='/'>
+              <p>Periodic Tables</p>
+            </Link>
+            <hr className='sidebar-divider my-0' />
+          </li>
+          <li>
+            <Link to='/dashboard'>
+              <span className='oi oi-dashboard'></span>
+              <p>&nbsp;Dashboard</p>
             </Link>
           </li>
-          <li className="nav-item">
-            <Link className="nav-link" to="/search">
-              <span className="oi oi-magnifying-glass" />
-              &nbsp;Search
+          <li>
+            <Link to='/search'>
+              <span className='oi oi-magnifying-glass'></span>
+              <p>&nbsp;Search</p>
             </Link>
           </li>
-          <li className="nav-item">
-            <Link className="nav-link" to="/reservations/new">
-              <span className="oi oi-plus" />
-              &nbsp;New Reservation
+          <li>
+            <Link to='/reservations/new'>
+              <span className='oi oi-plus'></span>
+              <p>&nbsp;New Reservation</p>
             </Link>
           </li>
-          <li className="nav-item">
-            <Link className="nav-link" to="/tables/new">
-              <span className="oi oi-layers" />
-              &nbsp;New Table
+          <li>
+            <Link to='/tables/new'>
+              <span className='oi oi-layers'></span>
+              <p>&nbsp;New Table</p>
             </Link>
           </li>
         </ul>
-        <div className="text-center d-none d-md-inline">
-          <button
-            className="btn rounded-circle border-0"
-            id="sidebarToggle"
-            type="button"
-          />
-        </div>
-      </div>
-    </nav>
+      </nav>
+    </section>
   );
-}
+};
 
 export default Menu;

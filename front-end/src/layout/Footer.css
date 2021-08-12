@@ -1,0 +1,18 @@
+@import '../App.css';
+
+.Footer {
+  color: #373f51;
+  padding: 20px 0;
+}
+
+.Footer p {
+  margin: 0;
+  font-size: 1.3em;
+}
+
+/* media queries >= 992px */
+@media (min-width: 992px) {
+  .Footer p {
+    font-size: 1.5em;
+  }
+}

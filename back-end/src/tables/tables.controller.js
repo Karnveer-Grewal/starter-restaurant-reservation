@@ -2,77 +2,24 @@ const service = require('./tables.service');
 const asyncErrorBoundary = require('../errors/asyncErrorBoundary');
 const hasProperties = require('../errors/hasProperties');
 
-//LIST: tables list function
-async function list(_, res) {
-  const data = await service.list();
-
-  res.json({ data });
-}
-
-//CREATE: tables create function to create new table
-async function create(req, res) {
-  const data = await service.create(req.body.data);
-
-  res.status(201).json({ data });
-}
-
-//CREATE: checks to see if table being created has required properties
+/* ----- VALIDATION MIDDLEWARE ----- */
+// checks if reservation has these properties
 const hasRequiredTableProperties = hasProperties('table_name', 'capacity');
+const hasRequiredReservationIdProperty = hasProperties('reservation_id');
 
-//CREATE: valid properties array
-const VALID_PROPERTIES = ['table_name', 'capacity'];
-
-//CREATE: checks to see if req.body has only certain properties
-function hasOnlyValidProperties(req, res, next) {
-  const { data = {} } = req.body;
-
-  const invalidFields = Object.keys(data).filter(
-    (field) => !VALID_PROPERTIES.includes(field)
-  );
-
-  if (invalidFields.length) {
-    return next({
-      status: 400,
-      message: `Invalid field(s): ${invalidFields.join(', ')}`,
-    });
-  }
-  next();
-}
-
-//CREATE: checks if table_name property has more than 1 char
+// checks if table_name property has more than 1 char
 function tableNameMoreThanOneChar(req, _, next) {
   const { table_name } = req.body.data;
 
-  if (table_name.length <= 1) {
-    return next({
-      status: 400,
-      message: 'table_name must be more than 1 character long!',
-    });
+  if (table_name.length > 1) next();
+  else {
+    const error = new Error(`table_name must be more than 1 character long!`);
+    error.status = 400;
+    throw error;
   }
-
-  next();
 }
 
-//CREATE: checks if capacity is not a number
-function isCapacityNumber(req, res, next) {
-  const { capacity } = req.body.data;
-  console.log(capacity);
-  console.log(typeof capacity);
-  if (typeof capacity !== 'number') {
-    return next({ status: 400, message: 'capacity is not a number' });
-  }
-  next();
-}
-
-//READ: read function to find table id
-async function read(_, res) {
-  const { table_id } = res.locals.table;
-  const data = await service.read(table_id);
-
-  res.json({ data });
-}
-
-//READ: checks if table exists
+// checks if table exists
 async function tableExists(req, res, next) {
   const { table_id } = req.params;
   const table = await service.read(table_id);
@@ -87,18 +34,7 @@ async function tableExists(req, res, next) {
   }
 }
 
-//UPDATE: function to update
-async function update(req, res) {
-  const { table_id } = req.params;
-  const data = await service.update(table_id, req.body.data);
-
-  res.json({ data });
-}
-
-//UPDATE:
-const hasRequiredReservationIdProperty = hasProperties('reservation_id');
-
-//UPDATE: checks to see if reservation exists
+// checks if reservation exists
 async function reservationExists(req, res, next) {
   const { reservation_id } = req.body.data;
   const reservation = await service.readReservationId(reservation_id);
@@ -115,7 +51,7 @@ async function reservationExists(req, res, next) {
   }
 }
 
-//UPDATE: checks if table_capacity property has sufficient capacity (reservation.people <= table.capacity)
+// checks if table_capacity property has sufficient capacity (reservation.people <= table.capacity)
 function sufficientCapacity(_, res, next) {
   const table = res.locals.table;
   const reservation = res.locals.reservation;
@@ -130,7 +66,7 @@ function sufficientCapacity(_, res, next) {
   }
 }
 
-//UPDATE: checks if table is not occupied by anyone (reservation_id === null), then go ahead and add reservation_id
+// checks if table is not occupied by anyone (reservation_id === null), then go ahead and add reservation_id
 function tableIsNotOccupied(_, res, next) {
   const table = res.locals.table;
 
@@ -142,7 +78,7 @@ function tableIsNotOccupied(_, res, next) {
   }
 }
 
-//UPDATE: checks if the reservation does not have status property of 'seated'
+// checks if the reservation does not have status property of 'seated'
 function reservationHasHasNotBeenSeated(_, res, next) {
   const reservation = res.locals.reservation;
   if (reservation.status !== 'seated') next();
@@ -153,7 +89,33 @@ function reservationHasHasNotBeenSeated(_, res, next) {
   }
 }
 
-//UPDATE: updates reservation's status property to 'seated'
+// checks if table is occupied (reservation_id has value), then go ahead and delete reservation_id
+function tableIsOccupied(_, res, next) {
+  const table = res.locals.table;
+
+  if (table.reservation_id) next();
+  else {
+    const error = new Error(`The table is not occupied; nothing to delete.`);
+    error.status = 400;
+    throw error;
+  }
+}
+
+/* ----- CRUDL ----- */
+async function create(req, res) {
+  const data = await service.create(req.body.data);
+
+  res.status(201).json({ data });
+}
+
+async function read(_, res) {
+  const { table_id } = res.locals.table;
+  const data = await service.read(table_id);
+
+  res.json({ data });
+}
+
+// also updates reservation's status property to 'seated'
 async function updateReservationStatusToSeated(_, res, next) {
   const { reservation_id } = res.locals.reservation;
 
@@ -161,16 +123,41 @@ async function updateReservationStatusToSeated(_, res, next) {
   next();
 }
 
+// also updates reservation's status property to 'finished'
+async function updateReservationStatusToFinished(req, res, next) {
+  const { reservation_id } = res.locals.table;
+
+  await service.updateReservationStatusToFinished(reservation_id);
+  next();
+}
+
+async function update(req, res) {
+  const { table_id } = req.params;
+  const data = await service.update(table_id, req.body.data);
+
+  res.json({ data });
+}
+
+async function list(_, res) {
+  const data = await service.list();
+
+  res.json({ data });
+}
+
+async function destroy(_, res) {
+  const { table_id } = res.locals.table;
+
+  await service.delete(table_id);
+  res.sendStatus(200);
+}
+
 module.exports = {
-  list: asyncErrorBoundary(list),
-  read: [asyncErrorBoundary(tableExists), asyncErrorBoundary(read)],
   create: [
-    hasOnlyValidProperties,
     hasRequiredTableProperties,
     tableNameMoreThanOneChar,
-    isCapacityNumber,
     asyncErrorBoundary(create),
   ],
+  read: [asyncErrorBoundary(tableExists), asyncErrorBoundary(read)],
   update: [
     hasRequiredReservationIdProperty,
     asyncErrorBoundary(tableExists),
@@ -181,4 +168,11 @@ module.exports = {
     asyncErrorBoundary(updateReservationStatusToSeated),
     asyncErrorBoundary(update),
   ],
+  delete: [
+    asyncErrorBoundary(tableExists),
+    tableIsOccupied,
+    asyncErrorBoundary(updateReservationStatusToFinished),
+    asyncErrorBoundary(destroy),
+  ],
+  list: asyncErrorBoundary(list),
 };

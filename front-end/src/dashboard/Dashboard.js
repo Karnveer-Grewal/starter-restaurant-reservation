@@ -1,29 +1,49 @@
+// dependencies
 import React, { useEffect, useState } from 'react';
-import { listReservations } from '../utils/api';
+import { useHistory } from 'react-router-dom';
+// local files
+import './Dashboard.css';
+import useQuery from '../utils/useQuery';
 import ErrorAlert from '../layout/ErrorAlert';
-import { next, previous, today } from '../utils/date-time';
-import { useHistory } from 'react-router';
+import { listReservations } from '../utils/api';
+import { today, next, previous } from '../utils/date-time';
 import Reservation from '../reservations/Reservation';
-
+import Table from '../tables/Table';
+import Footer from '../layout/Footer';
 /**
  * Defines the dashboard page.
  * @param date
  *  the date for which the user wants to view reservations.
  * @returns {JSX.Element}
  */
-function Dashboard({ date }) {
+
+function Dashboard() {
+  const API_BASE_URL =
+    process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
+  /* ----- useHistory, useQuery ----- */
   const history = useHistory();
+  // if date props (today) is not passed in
+  const query = useQuery();
+  let date = query.get('date');
+
+  if (!date) {
+    date = today();
+  }
+
+  /* ----- state ----- */
   const [reservations, setReservations] = useState([]);
   const [reservationsError, setReservationsError] = useState(null);
-  const [reservationDate, setReservationDate] = useState(date);
-  console.log(reservationDate);
+  const [reservation_date, setReservation_date] = useState(date);
+  const [tables, setTables] = useState([]);
 
-  useEffect(loadDashboard, [date]);
+  /* ----- useEffect & loading API data ----- */
+  // reservations
+  useEffect(loadDashboard, [reservation_date]);
 
   function loadDashboard() {
     const abortController = new AbortController();
     setReservationsError(null);
-    listReservations({ date: reservationDate }, abortController.signal)
+    listReservations({ date: reservation_date }, abortController.signal)
       .then(setReservations)
       .catch(setReservationsError);
     return () => abortController.abort();
@@ -33,37 +53,93 @@ function Dashboard({ date }) {
     <Reservation key={reservation.reservation_id} reservation={reservation} />
   ));
 
-  //handle click of Next Button
-  const handleNext = () => {
-    setReservationDate(next(reservationDate));
-    history.push(`/dashboard?date=${next(reservationDate)}`);
+  // tables
+  useEffect(() => {
+    const abortController = new AbortController();
+
+    async function loadTables() {
+      try {
+        const response = await fetch(`${API_BASE_URL}/tables`, {
+          signal: abortController.signal,
+        });
+        const tablesFromAPI = await response.json();
+        setTables(tablesFromAPI.data);
+      } catch (error) {
+        if (error.name === 'AbortError') {
+          console.log('Aborted');
+        } else {
+          throw error;
+        }
+      }
+    }
+    loadTables();
+    return () => abortController.abort();
+  }, [API_BASE_URL]);
+
+  const tablesData = tables.map((table) => (
+    <Table key={table.table_id} table={table} />
+  ));
+
+  /* ----- event handlers ----- */
+  const handleNextButton = () => {
+    setReservation_date(next(reservation_date));
+    history.push(`/dashboard/?date=${next(reservation_date)}`);
   };
 
-  const handlePrevious = () => {
-    setReservationDate(previous(reservationDate));
-    history.push(`/dashboard?date=${previous(reservationDate)}`);
+  const handlePreviousButton = () => {
+    setReservation_date(previous(reservation_date));
+    history.push(`/dashboard/?date=${previous(reservation_date)}`);
   };
 
-  const handleToday = () => {
-    setReservationDate(today());
-    history.push(`/dashboard?date=${today()}`);
+  const handleTodayButton = () => {
+    setReservation_date(today());
+    history.push(`/dashboard/${today()}`);
   };
-
+  /* ----- render content ----- */
   return (
-    <main>
-      <h1>Dashboard</h1>
-      <div className='d-md-flex mb-3'>
-        <h4 className='mb-0'>Reservations for {reservationDate}</h4>
-      </div>
+    <section className='Dashboard'>
       <ErrorAlert error={reservationsError} />
-      <div className='container'>{reservationsData}</div>
       {/* {JSON.stringify(reservations)} */}
-      <button onClick={handlePrevious}>Previous</button>
+      <h1>Dashboard</h1>
+      <h2>{reservation_date}</h2>
+      <section className='AllReservations'>
+        <h3>Reservations</h3>
+        <div className='buttons'>
+          <button
+            className='btn pink-btn'
+            type='button'
+            onClick={handlePreviousButton}
+          >
+            Previous
+          </button>
+          <button
+            className='btn orange-btn'
+            type='button'
+            onClick={handleNextButton}
+          >
+            Next
+          </button>
+          <button
+            className='btn lemon-lime-btn'
+            type='button'
+            onClick={handleTodayButton}
+          >
+            Today
+          </button>
+        </div>
+        <div className='reservations-data'>{reservationsData}</div>
+      </section>
 
-      <button onClick={handleToday}>Today</button>
+      <section className='AllTables'>
+        <div className='table-heading'>
+          <h3>Tables</h3>
+        </div>
 
-      <button onClick={handleNext}>Next</button>
-    </main>
+        <div className='tables-data'>{tablesData}</div>
+      </section>
+
+      <Footer />
+    </section>
   );
 }
 
